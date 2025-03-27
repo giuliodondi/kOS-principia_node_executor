@@ -13,8 +13,9 @@ Put the contents of the folder inside Ship/Script so that kOS can see all the fi
 
 # Usage
 - The script to be run is **node.ks**
+- The script will exit immediately if there is no manoeuvre node to execute
 - The script will automatically measure the engine parameters of any ship you call it from
-- The script will exit immediately if no engines are active or if there is no manoeuvre node to execute
+- If no engines are sensed, the script will downmode to using RCS. It will assume that there are RCS thrusters along the ship main axis and it will not do any performance calculations
 - The script executes just a single node
 - The script assumes that there is enough propellant to make the burn, and will not take care of propellant stability or other RSS stuff
 

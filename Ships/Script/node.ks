@@ -33,9 +33,10 @@ FUNCTION rotate_upvec {
 FUNCTION execute_manoeuvre {
 
 	//check engines 
+	local rcs_flag is false.
 	IF (get_running_engines():LENGTH = 0) {
-		PRINT "No active engines,  aborting." .
-		RETURN.
+		PRINT "No active engines,  falling back to RCS." .
+		set rcs_flag to true.
 	}
 	
 	IF (not HASNODE) {
@@ -121,7 +122,9 @@ FUNCTION execute_manoeuvre {
 			
 			set node_vec to nxtnode:deltav:normalized.
 			set nodeDV to nxtnode:deltav:MAG.
-			set burnT to burnDT(nodeDV).
+			if (not rcs_flag) {
+				set burnT to burnDT(nodeDV).
+			}
 			set node_eta to nxtnode:ETA.
 			
 			set node_tangent to vdot(node_vec, i_tangent).
@@ -134,10 +137,19 @@ FUNCTION execute_manoeuvre {
 			
 			if (node_eta < 0.1) {
 				SET ignitionflag TO TRUE.
+				if (rcs_flag) {
+					SET SHIP:CONTROL:FORE TO 1.
+				}
 				SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 1.
+				
 				set ignitionT to timer:last_sampled_t.
 				SET shutdownT TO ignitionT - node_eta + burnT.
-				set no_dv_thresh to nodeDV * no_dv_max_t / burnT.
+				if (rcs_flag) {
+					set no_dv_thresh to 0.
+				} else {
+					set no_dv_thresh to nodeDV * no_dv_max_t / burnT.
+				}
+				
 			}
 			
 			warp_controller(node_eta, FALSE, 25).
@@ -159,7 +171,7 @@ FUNCTION execute_manoeuvre {
 			}
 			
 			if ((timer:last_sampled_t > ignitionT + no_dv_max_t) and (dv_accum_calc < no_dv_thresh)) {
-			
+				set abortflag to TRUE.
 			}
 		}
 		
@@ -187,6 +199,7 @@ FUNCTION execute_manoeuvre {
 		PRINTPLACE("Manoeuvre complete",30,0,10).
 	}
 	
+	SET SHIP:CONTROL:FORE TO 0.
 	SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
 	
 	PRINTPLACE("Killing rotation...",30,0,8).

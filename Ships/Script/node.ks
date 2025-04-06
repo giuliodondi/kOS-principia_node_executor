@@ -147,7 +147,7 @@ FUNCTION execute_manoeuvre {
 				if (rcs_flag) {
 					set no_dv_thresh to 0.
 				} else {
-					set no_dv_thresh to nodeDV * no_dv_max_t / burnT.
+					set no_dv_thresh to 0.5 * nodeDV * no_dv_max_t / burnT.
 				}
 				
 			}
@@ -184,7 +184,7 @@ FUNCTION execute_manoeuvre {
 			SET upvec TO SHIP:FACING:TOPVECTOR.
 		}
 		
-		SET P_steer TO aimAndRoll(steervec, upvec , rollangle, FALSE). 
+		SET P_steer TO aimAndRoll(steervec, upvec , rollangle, (ignitionflag)). 
 		
 		if (abortflag or quitflag) {
 			break.

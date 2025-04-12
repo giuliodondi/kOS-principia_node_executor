@@ -21,9 +21,13 @@ Put the contents of the folder inside Ship/Script so that kOS can see all the fi
 
 # How it works
 
-The script measures the requested delta-V and the senses delta-V change during the burn. When enough delta-V has been accumulated, the burn is complete. The delta-V is measured factoring out the dV change due to gravity alone.  
+The script measures the requested delta-V and the sensed delta-V change during the burn. When enough delta-V has been accumulated, the burn is complete. The delta-V is measured factoring out the dV change due to gravity alone.  
 
-The tangent, radial and binormal components of the burn unit vector are kept constant as the burn progresses. This means that the direction unit vector itself is not constant, but rotates along with the unit trihedron as the burn goes. I did it this way because it's how Principia simulates the burn.
+There are two burn modes:
+- **INERTIAL** : keep the burn vector fixed throughout the burn. The vanilla KSP node editor will plan burns like this
+- **LVLH - Local Vertical Local Horizontal**: keep the burn vector fixed with respect to the local vertical/horizontal frame of reference. Since this frame rotates ad you orbit around the planet, the bun vector also rotates.
+
+While KSP only plans Inertial burns, Principia offers both LVLH and Inertial planning. The program by default is set to LVLH because that's the default in Principia which is what I use
 
 # Accuracy results
 WIP

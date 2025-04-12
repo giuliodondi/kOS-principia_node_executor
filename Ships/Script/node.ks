@@ -35,15 +35,27 @@ FUNCTION execute_manoeuvre {
 	//check engines 
 	local rcs_flag is false.
 	IF (get_running_engines():LENGTH = 0) {
-		PRINT "No active engines,  falling back to RCS." .
+		print "No active engines,  falling back to RCS" at (0,1).
 		set rcs_flag to true.
 	}
 	
 	IF (not HASNODE) {
-		PRINT "No manoeuvre node,  aborting." .
+		print "No manoeuvre node,  aborting" at (0,1).
 		RETURN.
 	}
 	
+	local lvlh_mode is true.
+	
+	on AG5 {
+		set lvlh_mode to not lvlh_mode.
+		
+		PRESERVE.
+	}
+	wait 0.
+	AG5 on.
+	wait 0.
+	
+	local printout_line is 5.
 	
 	SAS OFF.
 	ON SAS {
@@ -131,9 +143,9 @@ FUNCTION execute_manoeuvre {
 			set node_normal to vdot(node_vec, i_normal).
 			set node_binormal to vdot(node_vec, i_binormal).
 			
-			PRINTPLACE("Node Delta V : " + round(nodeDV, 2) + "m/s",30,0,1).
-			PRINTPLACE("Approx. Node Burn T  : " + sectotime(burnT),30,0,2).
-			PRINTPLACE("Node ETA : " + sectotime(-node_eta),30,0,4).
+			PRINTPLACE("Node Delta V : " + round(nodeDV, 2) + "m/s",30,0,printout_line + 1).
+			PRINTPLACE("Approx. Node Burn T  : " + sectotime(burnT),30,0,printout_line + 2).
+			PRINTPLACE("Node ETA : " + sectotime(-node_eta),30,0,printout_line + 4).
 			
 			if (node_eta < 0.1) {
 				SET ignitionflag TO TRUE.
@@ -158,9 +170,9 @@ FUNCTION execute_manoeuvre {
 			
 			local dv_left is nodeDV - dv_accum_calc.
 			
-			PRINTPLACE("Delta V sensed : " + round(dv_accum_calc, 1),30,0,4).
-			PRINTPLACE("Delta V left : " + round(dv_left, 1),30,0,5).
-			PRINTPLACE("Approx. Shutdown  : " + sectotime(shutdownT - timer:last_sampled_t),30,0,6).
+			PRINTPLACE("Delta V sensed : " + round(dv_accum_calc, 1),30,0,printout_line + 4).
+			PRINTPLACE("Delta V left : " + round(dv_left, 1),30,0,printout_line + 5).
+			PRINTPLACE("Approx. Shutdown  : " + sectotime(shutdownT - timer:last_sampled_t),30,0,printout_line + 6).
 			
 			if (dv_left <= 0) {
 				set quitflag to TRUE.
@@ -175,8 +187,13 @@ FUNCTION execute_manoeuvre {
 			}
 		}
 		
-		
-		set steervec to node_tangent*i_tangent + node_normal*i_normal + node_binormal*i_binormal.
+		if (lvlh_mode) {
+			print "LVLH MODE - Press AG5 to switch          " at (0,3).
+			set steervec to node_tangent*i_tangent + node_normal*i_normal + node_binormal*i_binormal.
+		} else {
+			print "INERTIAL MODE - Press AG5 to switch      " at (0,3).
+			set steervec to node_vec.
+		}
 		
 		IF (VANG(P_steer:VECTOR,SHIP:FACING:FOREVECTOR) < 10 ) {
 			SET upvec TO rotate_upvec(steervec,upvec).
@@ -194,15 +211,15 @@ FUNCTION execute_manoeuvre {
 	}
 	
 	IF (abortflag) {
-		PRINTPLACE("Manoeuvre aborted",30,0,10).
+		PRINTPLACE("Manoeuvre aborted",30,0,printout_line + 10).
 	} ELSE {
-		PRINTPLACE("Manoeuvre complete",30,0,10).
+		PRINTPLACE("Manoeuvre complete",30,0,printout_line + 10).
 	}
 	
 	SET SHIP:CONTROL:FORE TO 0.
 	SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
 	
-	PRINTPLACE("Killing rotation...",30,0,8).
+	PRINTPLACE("Killing rotation...",30,0,printout_line + 8).
 	
 	LOCK STEERING TO "kill".
 	
